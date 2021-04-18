@@ -15,6 +15,16 @@ uniform float Shininess;
 varying vec3 fragNormal;
 varying vec3 fragPos;  
 
+// calculate lighting based on linear, quadratic and constant attenuation
+void vertexLighting(out float attenuation, in float lightDistance)
+{
+    float csrc = 100.0; // source intensity 
+    float kc = 5.0; // constant attenuation
+    float kl = 0.5; // linear attenuation
+    float kq = 0.5; // quadratic attenuation
+    attenuation = csrc / (kc + kl * lightDistance + kq * pow(lightDistance, 2.0));
+}
+
 void main()
 {
     vec4 vpos = vec4(vPosition, 1.0);
@@ -25,16 +35,9 @@ void main()
     // The vector to the light from the vertex    
     vec3 Lvec = LightPosition.xyz - pos;
 
-    
-    /*
-        Light Calculation
-    */
-    float lightDistance = dot(Lvec, Lvec);
-    float csrc = 100.0; // source intensity 
-    float kc = 5.0; // constant attenuation
-    float kl = 0.5; // linear attenuation
-    float kq = 0.5; // quadratic attenuation
-    float cl = csrc / (kc + kl * sqrt(lightDistance) + kq * lightDistance);
+    float Cl = 1.0;
+    // enable line below to do lighting in vertex shader
+    vertexLighting(Cl, length(Lvec));
 
     // Unit direction vectors for Blinn-Phong shading calculation
     vec3 L = normalize( Lvec );   // Direction to the light source
@@ -46,13 +49,13 @@ void main()
     vec3 N = normalize( (ModelView*vec4(vNormal, 0.0)).xyz );
     
     // Compute terms in the illumination equation
-    vec3 ambient = AmbientProduct * cl;
+    vec3 ambient = AmbientProduct * Cl;
 
     float Kd = max( dot(L, N), 0.0 );
-    vec3  diffuse = Kd*DiffuseProduct * cl;
+    vec3  diffuse = Kd*DiffuseProduct * Cl;
 
     float Ks = pow( max(dot(N, H), 0.0), Shininess );
-    vec3  specular = Ks * SpecularProduct * cl;
+    vec3  specular = Ks * SpecularProduct * Cl;
     
     if (dot(L, N) < 0.0 ) {
 	specular = vec3(0.0, 0.0, 0.0);

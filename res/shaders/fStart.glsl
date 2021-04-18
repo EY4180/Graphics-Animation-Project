@@ -10,5 +10,8 @@ in vec3 fragPos;
 
 void main()
 {
+    vec3 lightDirection = fragPos - lightPos;
+    float lightDistance = length(lightDirection);
+    
     gl_FragColor = color * texture2D( texture, texCoord * texScale );
 }
