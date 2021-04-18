@@ -35,6 +35,8 @@ void main()
     vec3 diffuse = Kd*DiffuseProduct * multiplier;
 
     float m = 0.5;
+    // pretty simple method for gettin a better specular coefficient
+    // Gaussian Distribution m is a user defined constant for smoothness between 0 and 1
     float KsNew = exp(pow((dot(Normal, Half) / m), 2.0));
     float Ks = pow( max(dot(Normal, Half), 0.0), Shininess );
     vec3 specular = KsNew * SpecularProduct  * multiplier;    
