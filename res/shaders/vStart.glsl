@@ -5,15 +5,16 @@ attribute vec2 vTexCoord;
 varying vec2 texCoord;
 varying vec4 color;
 
-uniform vec3 GlobalAmbient;
 uniform vec3 AmbientProduct, DiffuseProduct, SpecularProduct;
+uniform vec3 GlobalAmbient;
 uniform mat4 ModelView;
 uniform mat4 Projection;
 uniform vec4 LightPosition;
 uniform float Shininess;
 
-varying vec3 fragNormal;
-varying vec3 fragPos;  
+varying vec3 Lvec; // vector from point to light
+varying vec3 Evec; // vector from point to eye
+varying vec3 Nvec; // surface normal vector
 
 // calculate lighting based on linear, quadratic and constant attenuation
 void vertexLighting(out float attenuation, in float lightDistance)
@@ -33,10 +34,9 @@ void main()
     vec3 pos = (ModelView * vpos).xyz;
 
     // The vector to the light from the vertex    
-    vec3 Lvec = LightPosition.xyz - pos;
-
+    Lvec = LightPosition.xyz - pos;
+    
     float Cl = 1.0;
-    // enable line below to do lighting in vertex shader
     vertexLighting(Cl, length(Lvec));
 
     // Unit direction vectors for Blinn-Phong shading calculation
@@ -62,12 +62,12 @@ void main()
     } 
 
     // globalAmbient is independent of distance from the light source
-    color.rgb = GlobalAmbient  + ambient + diffuse + specular;
+    color.rgb = GlobalAmbient + ambient + diffuse + specular;
     color.a = 1.0;
 
     gl_Position = Projection * ModelView * vpos;
 
-    fragNormal = N;
-    fragPos = (ModelView * vpos).xyz;
     texCoord = vTexCoord;
+    Nvec = N;
+    Evec = -pos;
 }
