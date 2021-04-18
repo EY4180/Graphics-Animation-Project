@@ -15,8 +15,8 @@ void vertexLighting(out float attenuation, in float lightDistance)
 {
     float csrc = 100.0; // source intensity 
     float kc = 5.0; // constant attenuation
-    float kl = 0.25; // linear attenuation
-    float kq = 0.25; // quadratic attenuation
+    float kl = 1.0; // linear attenuation
+    float kq = 2.0; // quadratic attenuation
     attenuation = csrc / (kc + kl * lightDistance + kq * pow(lightDistance, 2.0));
 }
 
@@ -34,8 +34,10 @@ void main()
     float Kd = max( dot(Light, Normal), 0.0 );
     vec3 diffuse = Kd*DiffuseProduct * multiplier;
 
+    float m = 0.5;
+    float KsNew = exp(pow((dot(Normal, Half) / m), 2.0));
     float Ks = pow( max(dot(Normal, Half), 0.0), Shininess );
-    vec3 specular = Ks * SpecularProduct  * multiplier;    
+    vec3 specular = KsNew * SpecularProduct  * multiplier;    
     if (dot(Light, Normal) < 0.0 ) {
 	    specular = vec3(0.0, 0.0, 0.0);
     } 
