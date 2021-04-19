@@ -465,7 +465,6 @@ void display(void)
 
     SceneObject lightObj1 = sceneObjs[1];
     vec4 lightPosition = view * lightObj1.loc;
-
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"),
                  1, lightPosition);
     CheckError();
@@ -789,6 +788,9 @@ void reshape(int width, int height)
     }
 
     projection = perspProjection;
+
+    glUniform1f(glGetUniformLocation(shaderProgram, "width"), (float) width);
+    glUniform1f(glGetUniformLocation(shaderProgram, "height"), (float) height);
 }
 
 //----------------------------------------------------------------------------

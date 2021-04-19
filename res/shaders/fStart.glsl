@@ -5,11 +5,12 @@ in vec3 Evec; // vector from point to eye
 in vec3 Nvec; // surface normal vector
 
 uniform vec3 AmbientProduct, DiffuseProduct, SpecularProduct;
+uniform vec3 GlobalAmbient;
 uniform float texScale;
-uniform sampler2D texture;
 uniform float Shininess;
+uniform float width, height;
 
-
+uniform sampler2D texture;
 
 // calculate lighting based on linear, quadratic and constant attenuation
 void vertexLighting(out float attenuation, in float lightDistance)
@@ -45,13 +46,13 @@ void main()
 	    specular = vec3(0.0, 0.0, 0.0);
     } 
 
-    vec4 perFragment = vec4( ambient.rgb + diffuse.rgb + specular.rgb, 1.0 );
+    vec4 perFragment = vec4( ambient.rgb + diffuse.rgb + specular.rgb + GlobalAmbient.rgb, 1.0 );
 
     if(gl_FrontFacing) {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
     }
     else {
-       if(gl_FragCoord.x > 100.0) {
+       if(gl_FragCoord.x > (width / 2.0)) {
         gl_FragColor = perFragment * texture2D( texture, texCoord * texScale );
         }
         else {
