@@ -1,14 +1,15 @@
-varying vec4 color;
-varying vec2 texCoord;  // The third coordinate is always 0.0 and is discarded
+in vec4 color;
+in vec2 texCoord;  // The third coordinate is always 0.0 and is discarded
+in vec3 Lvec; // vector from point to light
+in vec3 Evec; // vector from point to eye
+in vec3 Nvec; // surface normal vector
 
 uniform vec3 AmbientProduct, DiffuseProduct, SpecularProduct;
 uniform float texScale;
 uniform sampler2D texture;
 uniform float Shininess;
 
-in vec3 Lvec; // vector from point to light
-in vec3 Evec; // vector from point to eye
-in vec3 Nvec; // surface normal vector
+
 
 // calculate lighting based on linear, quadratic and constant attenuation
 void vertexLighting(out float attenuation, in float lightDistance)
@@ -50,7 +51,13 @@ void main()
         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
     }
     else {
+       if(gl_FragCoord.x > 100.0) {
         gl_FragColor = perFragment * texture2D( texture, texCoord * texScale );
+        }
+        else {
+            gl_FragColor = color * texture2D( texture, texCoord * texScale );
+        }
+        
     }
     
 }
