@@ -212,9 +212,6 @@ static void mouseClickOrScroll(int button, int state, int x, int y)
     {
         if (state == GLUT_DOWN)
         {
-            // possibly change function depending on
-            // - Mouse 1 + Shift
-            // - Mouse 1
             const bool shift = glutGetModifiers() != GLUT_ACTIVE_SHIFT;
             activateTool(shift ? button : GLUT_LEFT_BUTTON);
         }
@@ -388,6 +385,19 @@ void init(void)
     sceneObjs[1].texId = 0;        // Plain texture
     sceneObjs[1].brightness = 0.2; // The light's brightness is 5 times this (below).
 
+    addObject(55); // Sphere for the directional light
+    sceneObjs[2].loc = vec4(2.0, 2.0, 1.0, 1.0);
+    sceneObjs[2].scale = 0.25;
+    sceneObjs[2].texId = 0;        // Plain texture
+    sceneObjs[2].brightness = 0.2; // The light's brightness is 5 times this (below).
+
+    addObject(55); // Sphere for the spot light
+    sceneObjs[3].loc = vec4(2.0, 3.0, 1.0, 1.0);
+    sceneObjs[3].scale = 0.1;
+    sceneObjs[3].texId = 0;        // Plain texture
+    sceneObjs[3].brightness = 0.2; // The light's brightness is 5 times this (below).
+
+
     addObject(rand() % numMeshes); // A test mesh
 
     // We need to enable the depth test to discard fragments that
@@ -464,9 +474,17 @@ void display(void)
     view = LookAt(eye, center, up);
 
     SceneObject lightObj1 = sceneObjs[1];
+    SceneObject lightObj2 = sceneObjs[2];
+    
     vec4 lightPosition = view * lightObj1.loc;
+    vec4 directionalPosition = view * lightObj2.loc;
+
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"),
                  1, lightPosition);
+    CheckError();
+
+    glUniform4fv(glGetUniformLocation(shaderProgram, "DirectionalPosition"),
+                 1, directionalPosition);
     CheckError();
 
     for (int i = 0; i < nObjects; i++)
@@ -559,6 +577,12 @@ static void lightMenu(int id)
     if (id == 70)
     {
         toolObj = 1;
+        setToolCallbacks(adjustLocXZ, camRotZ(),
+                         adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
+    }
+    else if (id == 80)
+    {
+        toolObj = 2;
         setToolCallbacks(adjustLocXZ, camRotZ(),
                          adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
     }
