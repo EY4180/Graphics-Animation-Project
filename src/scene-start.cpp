@@ -515,6 +515,20 @@ void display(void)
 //----------------------------------------------------------------------------
 //------Menus-----------------------------------------------------------------
 //----------------------------------------------------------------------------
+static void redrawDeleteMenu()
+{
+    glutSetMenu(deleteId);
+    while (glutGet(GLUT_MENU_NUM_ITEMS))
+    {
+        glutRemoveMenuItem(1);
+    }
+
+    for (size_t i = 0; i < nObjects; i++)
+    {
+        SceneObject so = sceneObjs[i];
+        glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
+    }
+}
 
 static void deleteMenu(int id)
 {
@@ -525,39 +539,14 @@ static void deleteMenu(int id)
     }
 
     nObjects--;
-
-    while (glutGet(GLUT_MENU_NUM_ITEMS))
-    {
-        glutRemoveMenuItem(1);
-    }
-
-    for (size_t i = 0; i < nObjects; i++)
-    {
-        char entry[128];
-        SceneObject so = sceneObjs[i];
-        itoa(so.meshId, entry, 10);
-        glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
-    }
+    redrawDeleteMenu();
 }
 
 static void objectMenu(int id)
 {
     deactivateTool();
     addObject(id);
-
-    glutSetMenu(deleteId);
-    while (glutGet(GLUT_MENU_NUM_ITEMS))
-    {
-        glutRemoveMenuItem(1);
-    }
-
-    for (size_t i = 0; i < nObjects; i++)
-    {
-        char entry[128];
-        SceneObject so = sceneObjs[i];
-        itoa(so.meshId, entry, 10);
-        glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
-    }
+    redrawDeleteMenu();
 }
 
 static void texMenu(int id)
@@ -748,13 +737,7 @@ static void makeMenu()
     glutAddMenuEntry("R/G/B/All Light 2", 81);
 
     deleteId = glutCreateMenu(deleteMenu);
-    for (size_t i = 0; i < nObjects; i++)
-    {
-        char entry[128];
-        SceneObject so = sceneObjs[i];
-        itoa(so.meshId, entry, 10);
-        glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
-    }
+    redrawDeleteMenu();
 
     glutCreateMenu(mainmenu);
     glutAddMenuEntry("Rotate/Move Camera", 50);
