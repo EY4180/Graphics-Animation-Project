@@ -212,8 +212,8 @@ static void mouseClickOrScroll(int button, int state, int x, int y)
     {
         if (state == GLUT_DOWN)
         {
-            const bool shift = glutGetModifiers() != GLUT_ACTIVE_SHIFT;
-            activateTool(shift ? button : GLUT_LEFT_BUTTON);
+            const bool shift = glutGetModifiers() == GLUT_ACTIVE_SHIFT;
+            activateTool(shift ? GLUT_MIDDLE_BUTTON : GLUT_LEFT_BUTTON);
         }
         else
         {
@@ -386,7 +386,7 @@ void init(void)
     sceneObjs[1].brightness = 0.2; // The light's brightness is 5 times this (below).
 
     addObject(55); // Sphere for the directional light
-    sceneObjs[2].loc = vec4(2.0, 2.0, 1.0, 1.0);
+    sceneObjs[2].loc = vec4(0.0, 1.0, 0.0, 1.0);
     sceneObjs[2].scale = 0.25;
     sceneObjs[2].texId = 0;        // Plain texture
     sceneObjs[2].brightness = 0.2; // The light's brightness is 5 times this (below).
@@ -396,7 +396,6 @@ void init(void)
     sceneObjs[3].scale = 0.1;
     sceneObjs[3].texId = 0;        // Plain texture
     sceneObjs[3].brightness = 0.2; // The light's brightness is 5 times this (below).
-
 
     addObject(rand() % numMeshes); // A test mesh
 
@@ -475,9 +474,11 @@ void display(void)
 
     SceneObject lightObj1 = sceneObjs[1];
     SceneObject lightObj2 = sceneObjs[2];
-    
+
     vec4 lightPosition = view * lightObj1.loc;
     vec4 directionalPosition = view * lightObj2.loc;
+
+    cout << lightPosition << endl;
 
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"),
                  1, lightPosition);
@@ -813,8 +814,8 @@ void reshape(int width, int height)
 
     projection = perspProjection;
 
-    glUniform1f(glGetUniformLocation(shaderProgram, "width"), (float) width);
-    glUniform1f(glGetUniformLocation(shaderProgram, "height"), (float) height);
+    glUniform1f(glGetUniformLocation(shaderProgram, "width"), (float)width);
+    glUniform1f(glGetUniformLocation(shaderProgram, "height"), (float)height);
 }
 
 //----------------------------------------------------------------------------

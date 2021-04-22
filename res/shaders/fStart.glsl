@@ -8,6 +8,7 @@ uniform vec4 DirectionalPosition; // position of the directional source
 uniform vec3 AmbientProduct, DiffuseProduct, SpecularProduct;
 uniform vec3 GlobalAmbient;
 uniform float Shininess;
+uniform mat4 ModelView;
 
 uniform float texScale;
 uniform float width, height;
@@ -16,10 +17,10 @@ uniform sampler2D texture;
 vec3 getIntensity(in vec3 lightVector)
 {
     float distance = length(lightVector);
-    float csrc = 5.0; // source intensity 
+    float csrc = 50.0; // source intensity 
     float kc = 5.0; // constant attenuation
-    float kl = 0.5; // linear attenuation
-    float kq = 0.5; // quadratic attenuation
+    float kl = 1.0; // linear attenuation
+    float kq = 1.0; // quadratic attenuation
     float intensity = csrc / (kc + kl * distance + kq * distance * distance);
     return vec3(intensity, intensity, intensity);
 }
@@ -28,9 +29,18 @@ vec3 getIntensity(in vec3 lightVector)
 // Gaussian Distribution m is a user defined constant for smoothness between 0 and 1
 float getGaussian(in vec3 normal, in vec3 half)
 {
-    float m = 0.5;
-    float theta = abs(dot(normal, half)); // angle between normal and half vector
-    float specularCoefficient = exp(pow(theta / m, 2.0));
+    float theta = acos(clamp(dot(normal, half), 0.0, 1.0)); // angle between normal and half vector
+    float specularCoefficient = exp(-pow(theta / Shininess, 2.0));
+    return specularCoefficient;
+}
+
+// more complex method of calculating specular coefficient
+float getSpecular(in vec3 normal, in vec3 light, in vec3 eye)
+{
+    float n = 10.0;
+    vec3 reflection = reflect(light, normal);
+    float cosTheta = clamp(dot(reflection, eye), 0.0, 1.0);
+    float specularCoefficient = pow(cosTheta, n);
     return specularCoefficient;
 }
 
@@ -44,14 +54,15 @@ vec3 getColor(in vec3 light, in vec3 normal, in vec3 eye)
 
     vec3 ambient = AmbientProduct;
 
-    float Kd = max( dot(nLight, nNormal), 0.0 );
+    float Kd = clamp(dot(nLight, nNormal), 0.0, 1.0);
     vec3 diffuse = Kd * DiffuseProduct;
 
-    float Ks = getGaussian(nNormal, nHalf);
+    //float Ks = getGaussian(nNormal, nHalf);
+    float Ks = getSpecular(nNormal, nLight, nEye);
     vec3 specular = Ks * SpecularProduct;    
-    if (dot(nLight, nNormal) < 0.0 ) {
-	    specular = vec3(0.0, 0.0, 0.0);
-    }
+    //if (dot(nLight, nNormal) < 0.0 ) {
+	//    specular = vec3(0.0, 0.0, 0.0);
+    //}
 
     vec3 totalColor = (ambient + diffuse + specular) * intensity;
     return totalColor;
@@ -60,12 +71,12 @@ vec3 getColor(in vec3 light, in vec3 normal, in vec3 eye)
 void main()
 {
     vec3 pointColor = getColor(Lvec, Nvec, Evec);
-    vec3 directionalColor = getColor(DirectionalPosition.xyz, Nvec, Evec);
+    vec3 directionalColor = getColor(normalize(DirectionalPosition.xyz), Nvec, Evec);
 
     if(gl_FrontFacing) {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
     }
     else {
-        gl_FragColor = vec4( directionalColor, 1.0 ) * texture2D( texture, texCoord * 2.0 );
+        gl_FragColor = vec4( directionalColor + pointColor, 1.0 ) * texture2D( texture, texCoord * 2.0 );
     }
 }
