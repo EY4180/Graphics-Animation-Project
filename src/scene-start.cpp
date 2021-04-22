@@ -34,6 +34,8 @@ GLuint projectionU, modelViewU;       // IDs for uniform variables (from glGetUn
 static float viewDist = 1.5;         // Distance from the camera to the centre of the scene
 static float camRotSidewaysDeg = 0;  // rotates the camera sideways around the centre
 static float camRotUpAndOverDeg = 0; // rotates the camera up and over the centre.
+static float spotX = 0;
+static float spotY = 0;
 
 mat4 projection; // Projection matrix - set in the reshape function
 mat4 view;       // View matrix - set in the display function.
@@ -495,7 +497,7 @@ void display(void)
     {
         lightRGB[i] = lightSources[i].rgb * lightSources[i].brightness * 2.0;
         lightPosition[i] = view * lightSources[i].loc;
-        lightDirection[i] = view * sphericalToCartesian(lightSources[i].angles[0], lightSources[i].angles[1], 1.0);
+        lightDirection[i] = view * ((RotateX(spotX) * RotateZ(spotY)) * vec4({0.0, 1.0, 0.0, 0.0}));
     }
 
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), totalLights,
@@ -649,6 +651,12 @@ static void adjustAmbientDiffuse(vec2 ad)
     printf("diffuse: %f ambient: %f\n", sceneObjs[toolObj].diffuse, sceneObjs[toolObj].ambient);
 }
 
+static void adjustSpotXZ(vec2 xy)
+{
+    spotX += xy[0];
+    spotY += xy[1];
+}
+
 static void lightMenu(int id)
 {
     deactivateTool();
@@ -670,11 +678,28 @@ static void lightMenu(int id)
         toolObj = 2;
         setToolCallbacks(adjustLocXZ, camRotZ(),
                          adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
-
         break;
 
     case 81:
         toolObj = 2;
+        setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
+                         adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
+        break;
+
+    case 90:
+        toolObj = 3;
+        setToolCallbacks(adjustLocXZ, camRotZ(),
+                         adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
+        break;
+
+    case 91:
+        toolObj = 3;
+        setToolCallbacks(adjustSpotXZ, mat2(400, 0, 0, 400),
+                         adjustSpotXZ, mat2(400, 0, 0, 400));
+        break;
+
+    case 92:
+        toolObj = 3;
         setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
                          adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
 
@@ -779,10 +804,13 @@ static void makeMenu()
     int groundMenuId = createArrayMenu(numTextures, textureMenuEntries, groundMenu);
 
     int lightMenuId = glutCreateMenu(lightMenu);
-    glutAddMenuEntry("Move Light 1", 70);
-    glutAddMenuEntry("R/G/B/All Light 1", 71);
-    glutAddMenuEntry("Move Light 2", 80);
-    glutAddMenuEntry("R/G/B/All Light 2", 81);
+    glutAddMenuEntry("Move Point Light", 70);
+    glutAddMenuEntry("R/G/B/All Point Light", 71);
+    glutAddMenuEntry("Move Directional Light", 80);
+    glutAddMenuEntry("R/G/B/All Directional Light", 81);
+    glutAddMenuEntry("Move Spot Light", 90);
+    glutAddMenuEntry("Change Spot Direction", 91);
+    glutAddMenuEntry("R/G/B/All Spot Light", 92);
 
     deleteId = glutCreateMenu(deleteMenu);
     redrawDeleteMenu();

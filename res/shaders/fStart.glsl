@@ -1,6 +1,7 @@
 in vec2 texCoord;  // The third coordinate is always 0.0 and is discarded
 in vec3 eyeVector; // vector from point to light
 in vec3 pointVector; // vector from point to eye
+in vec3 spotVector; // vector from point to eye
 in vec3 normalVector; // vector from point to light
 
 uniform vec4 DirectionVector[3]; // direction of lights
@@ -68,11 +69,16 @@ void main()
 {
     vec3 pointColor = getColor(pointVector, ColorVector[0], normalVector, eyeVector);
     vec3 directionalColor = getColor(normalize(LightPosition[1].xyz), ColorVector[1], normalVector, eyeVector);
+    
+    vec3 spotColor = getColor(spotVector, ColorVector[2], normalVector, eyeVector);
+    if (degrees(acos(dot(normalize(spotVector), normalize(DirectionVector[2].xyz)))) > 15.0) {
+        spotColor = vec3(0.0, 0.0, 0.0);
+    }
 
     if(gl_FrontFacing) {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
     }
     else {
-        gl_FragColor = vec4(GlobalAmbient + directionalColor + pointColor, 1.0 ) * texture2D( texture, texCoord * 2.0 );
+        gl_FragColor = vec4(GlobalAmbient + spotColor, 1.0 ) * texture2D( texture, texCoord * 2.0 );
     }
 }

@@ -10,6 +10,7 @@ uniform vec3 AmbientProduct, DiffuseProduct, SpecularProduct;
 
 varying vec2 texCoord;
 varying vec3 pointVector; // vector from point to light
+varying vec3 spotVector; // vector from point to eye
 varying vec3 eyeVector; // vector from point to eye
 varying vec3 normalVector; // surface normal vector
 
@@ -18,6 +19,7 @@ void main()
     vec4 vpos = vec4(vPosition, 1.0);
     vec3 pos = (ModelView * vpos).xyz;
 
+    spotVector = LightPosition[2].xyz - pos;
     pointVector = LightPosition[0].xyz - pos;
     normalVector = normalize( (ModelView*vec4(vNormal, 0.0)).xyz );
     eyeVector = -pos;
