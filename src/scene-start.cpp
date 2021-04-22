@@ -454,6 +454,14 @@ void drawMesh(SceneObject sceneObj)
 }
 
 //----------------------------------------------------------------------------
+vec4 sphericalToCartesian(float theta, float phi, float magnitude)
+{
+    float Y = magnitude * sinf(theta);
+    float X = magnitude * cosf(theta) * cosf(phi);
+    float Z = magnitude * cosf(theta) * sinf(phi);
+
+    return vec4(X, Y, Z, 1.0);
+}
 
 void display(void)
 {
@@ -465,42 +473,51 @@ void display(void)
     float camRotUpAndOverRad = camRotUpAndOverDeg * DegreesToRadians;
     float camRotSidewaysRad = camRotSidewaysDeg * DegreesToRadians;
 
+    /*
     float Y = viewDist * sinf(camRotUpAndOverRad);
     float X = viewDist * cosf(camRotUpAndOverRad) * cosf(camRotSidewaysRad);
     float Z = viewDist * cosf(camRotUpAndOverRad) * sinf(camRotSidewaysRad);
+    */
 
-    vec4 eye = {X, Y, Z, 1.0};
+    vec4 eye = sphericalToCartesian(camRotUpAndOverRad, camRotSidewaysRad, viewDist);
     vec4 center = {0, 0, 0, 1.0};
     vec4 up = {0.0, 1.0, 0.0, 0.0};
 
     view = LookAt(eye, center, up);
 
-    SceneObject lightObj1 = sceneObjs[1];
-    SceneObject lightObj2 = sceneObjs[2];
+    SceneObject lightSources[] = {sceneObjs[1], sceneObjs[2], sceneObjs[3]};
+    const int totalLights = sizeof(lightSources) / sizeof(*lightSources);
+    vec4 lightPosition[totalLights];
+    vec4 lightDirection[totalLights];
+    vec3 lightRGB[totalLights];
 
-    vec4 lightPosition = view * lightObj1.loc;
-    vec4 directionalPosition = view * lightObj2.loc;
+    for (size_t i = 0; i < totalLights; i++)
+    {
+        lightRGB[i] = lightSources[i].rgb * lightSources[i].brightness * 2.0;
+        lightPosition[i] = view * lightSources[i].loc;
+        lightDirection[i] = view * sphericalToCartesian(lightSources[i].angles[0], lightSources[i].angles[1], 1.0);
+    }
 
-    cout << lightPosition << endl;
-
-    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"),
-                 1, lightPosition);
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), totalLights,
+                 *lightPosition);
     CheckError();
 
-    glUniform4fv(glGetUniformLocation(shaderProgram, "DirectionalPosition"),
-                 1, directionalPosition);
+    glUniform4fv(glGetUniformLocation(shaderProgram, "DirectionVector"), totalLights,
+                 *lightDirection);
+    CheckError();
+
+    glUniform3fv(glGetUniformLocation(shaderProgram, "ColorVector"), totalLights,
+                 *lightRGB);
     CheckError();
 
     for (int i = 0; i < nObjects; i++)
     {
         SceneObject so = sceneObjs[i];
-
-        vec3 rgb = lightObj2.rgb * so.rgb * lightObj1.rgb * so.brightness * lightObj1.brightness * 2.0;
-        glUniform3fv(glGetUniformLocation(shaderProgram, "AmbientProduct"), 1, so.ambient * rgb);
+        glUniform1f(glGetUniformLocation(shaderProgram, "AmbientProduct"), so.ambient);
         CheckError();
 
-        glUniform3fv(glGetUniformLocation(shaderProgram, "DiffuseProduct"), 1, so.diffuse * rgb);
-        glUniform3fv(glGetUniformLocation(shaderProgram, "SpecularProduct"), 1, so.specular * rgb);
+        glUniform1f(glGetUniformLocation(shaderProgram, "DiffuseProduct"), so.diffuse);
+        glUniform1f(glGetUniformLocation(shaderProgram, "SpecularProduct"), so.specular);
         glUniform1f(glGetUniformLocation(shaderProgram, "Shininess"), so.shine);
         CheckError();
 
@@ -597,6 +614,9 @@ static void groundMenu(int id)
 static void adjustBrightnessY(vec2 by)
 {
     sceneObjs[toolObj].brightness += by[0];
+    sceneObjs[toolObj].brightness = fmax(sceneObjs[toolObj].brightness, 0.0);
+    sceneObjs[toolObj].brightness = fmin(sceneObjs[toolObj].brightness, 100.0);
+
     sceneObjs[toolObj].loc[1] += by[1];
 }
 

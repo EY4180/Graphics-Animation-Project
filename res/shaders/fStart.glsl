@@ -1,14 +1,14 @@
-in vec4 color;
 in vec2 texCoord;  // The third coordinate is always 0.0 and is discarded
-in vec3 Lvec; // vector from point to light
-in vec3 Evec; // vector from point to eye
-in vec3 Nvec; // surface normal vector
+in vec3 eyeVector; // vector from point to light
+in vec3 pointVector; // vector from point to eye
+in vec3 normalVector; // vector from point to light
 
-uniform vec4 DirectionalPosition; // position of the directional source
-uniform vec3 AmbientProduct, DiffuseProduct, SpecularProduct;
+uniform vec4 DirectionVector[3]; // direction of lights
+uniform vec4 LightPosition[3]; // positions of the point source
+uniform vec3 ColorVector[3]; // rgb values of lights
 uniform vec3 GlobalAmbient;
-uniform float Shininess;
 
+uniform float AmbientProduct, DiffuseProduct, SpecularProduct, Shininess;
 uniform float texScale;
 uniform float width, height;
 uniform sampler2D texture;
@@ -43,7 +43,7 @@ float getSpecular(in vec3 normal, in vec3 light, in vec3 eye)
     return specularCoefficient;
 }
 
-vec3 getColor(in vec3 light, in vec3 normal, in vec3 eye)
+vec3 getColor(in vec3 light, in vec3 rgb, in vec3 normal, in vec3 eye)
 {
     vec3 nNormal = normalize(normal);
     vec3 nLight = normalize(light);
@@ -51,14 +51,14 @@ vec3 getColor(in vec3 light, in vec3 normal, in vec3 eye)
     vec3 nHalf = normalize( nLight + nEye );
     vec3 intensity = getIntensity(light);
 
-    vec3 ambient = AmbientProduct;
+    vec3 ambient = AmbientProduct * rgb;
 
     float Kd = clamp(dot(nLight, nNormal), 0.0, 1.0);
-    vec3 diffuse = Kd * DiffuseProduct;
+    vec3 diffuse = Kd * DiffuseProduct * rgb;
 
     //float Ks = getGaussian(nNormal, nHalf);
     float Ks = getSpecular(nNormal, nLight, nEye);
-    vec3 specular = Ks * SpecularProduct;    
+    vec3 specular = Ks * SpecularProduct * rgb;    
 
     vec3 totalColor = (ambient + diffuse + specular) * intensity;
     return totalColor;
@@ -66,13 +66,13 @@ vec3 getColor(in vec3 light, in vec3 normal, in vec3 eye)
 
 void main()
 {
-    vec3 pointColor = getColor(Lvec, Nvec, Evec);
-    vec3 directionalColor = getColor(normalize(DirectionalPosition.xyz), Nvec, Evec);
+    vec3 pointColor = getColor(pointVector, ColorVector[0], normalVector, eyeVector);
+    vec3 directionalColor = getColor(normalize(LightPosition[1].xyz), ColorVector[1], normalVector, eyeVector);
 
     if(gl_FrontFacing) {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
     }
     else {
-        gl_FragColor = vec4( directionalColor + pointColor, 1.0 ) * texture2D( texture, texCoord * 2.0 );
+        gl_FragColor = vec4(GlobalAmbient + directionalColor + pointColor, 1.0 ) * texture2D( texture, texCoord * 2.0 );
     }
 }
