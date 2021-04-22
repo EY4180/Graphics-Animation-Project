@@ -79,6 +79,8 @@ SceneObject sceneObjs[maxObjects]; // An array storing the objects currently in 
 int nObjects = 0;                  // How many objects are currenly in the scene.
 int currObject = -1;               // The current object
 int toolObj = -1;                  // The object currently being modified
+//------Menu Items -----------------------------------------------------------
+int deleteId = 0;
 
 //----------------------------------------------------------------------------
 //
@@ -514,10 +516,48 @@ void display(void)
 //------Menus-----------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+static void deleteMenu(int id)
+{
+    deactivateTool();
+    for (size_t i = id; i < nObjects; i++)
+    {
+        sceneObjs[i] = sceneObjs[i + 1];
+    }
+
+    nObjects--;
+
+    while (glutGet(GLUT_MENU_NUM_ITEMS))
+    {
+        glutRemoveMenuItem(1);
+    }
+
+    for (size_t i = 0; i < nObjects; i++)
+    {
+        char entry[128];
+        SceneObject so = sceneObjs[i];
+        itoa(so.meshId, entry, 10);
+        glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
+    }
+}
+
 static void objectMenu(int id)
 {
     deactivateTool();
     addObject(id);
+
+    glutSetMenu(deleteId);
+    while (glutGet(GLUT_MENU_NUM_ITEMS))
+    {
+        glutRemoveMenuItem(1);
+    }
+
+    for (size_t i = 0; i < nObjects; i++)
+    {
+        char entry[128];
+        SceneObject so = sceneObjs[i];
+        itoa(so.meshId, entry, 10);
+        glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
+    }
 }
 
 static void texMenu(int id)
@@ -707,9 +747,19 @@ static void makeMenu()
     glutAddMenuEntry("Move Light 2", 80);
     glutAddMenuEntry("R/G/B/All Light 2", 81);
 
+    deleteId = glutCreateMenu(deleteMenu);
+    for (size_t i = 0; i < nObjects; i++)
+    {
+        char entry[128];
+        SceneObject so = sceneObjs[i];
+        itoa(so.meshId, entry, 10);
+        glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
+    }
+
     glutCreateMenu(mainmenu);
     glutAddMenuEntry("Rotate/Move Camera", 50);
     glutAddSubMenu("Add object", objectId);
+    glutAddSubMenu("Delete object", deleteId);
     glutAddMenuEntry("Position/Scale", 41);
     glutAddMenuEntry("Rotation/Texture Scale", 55);
     glutAddSubMenu("Material", materialMenuId);
@@ -717,6 +767,7 @@ static void makeMenu()
     glutAddSubMenu("Ground Texture", groundMenuId);
     glutAddSubMenu("Lights", lightMenuId);
     glutAddMenuEntry("EXIT", 99);
+
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
