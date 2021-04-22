@@ -16,7 +16,6 @@ uniform float Shininess;
 varying vec3 Lvec; // vector from point to light
 varying vec3 Evec; // vector from point to eye
 varying vec3 Nvec; // surface normal vector
-varying vec3 Dvec; // vector from directional to 
 
 void main()
 {

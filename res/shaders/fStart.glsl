@@ -8,7 +8,6 @@ uniform vec4 DirectionalPosition; // position of the directional source
 uniform vec3 AmbientProduct, DiffuseProduct, SpecularProduct;
 uniform vec3 GlobalAmbient;
 uniform float Shininess;
-uniform mat4 ModelView;
 
 uniform float texScale;
 uniform float width, height;
@@ -60,9 +59,6 @@ vec3 getColor(in vec3 light, in vec3 normal, in vec3 eye)
     //float Ks = getGaussian(nNormal, nHalf);
     float Ks = getSpecular(nNormal, nLight, nEye);
     vec3 specular = Ks * SpecularProduct;    
-    //if (dot(nLight, nNormal) < 0.0 ) {
-	//    specular = vec3(0.0, 0.0, 0.0);
-    //}
 
     vec3 totalColor = (ambient + diffuse + specular) * intensity;
     return totalColor;

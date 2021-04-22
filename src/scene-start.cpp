@@ -492,7 +492,7 @@ void display(void)
     {
         SceneObject so = sceneObjs[i];
 
-        vec3 rgb = so.rgb * lightObj1.rgb * so.brightness * lightObj1.brightness * 2.0;
+        vec3 rgb = lightObj2.rgb * so.rgb * lightObj1.rgb * so.brightness * lightObj1.brightness * 2.0;
         glUniform3fv(glGetUniformLocation(shaderProgram, "AmbientProduct"), 1, so.ambient * rgb);
         CheckError();
 
@@ -575,28 +575,37 @@ static void adjustAmbientDiffuse(vec2 ad)
 static void lightMenu(int id)
 {
     deactivateTool();
-    if (id == 70)
+    switch (id)
     {
+    case 70:
         toolObj = 1;
         setToolCallbacks(adjustLocXZ, camRotZ(),
                          adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
-    }
-    else if (id == 80)
-    {
-        toolObj = 2;
-        setToolCallbacks(adjustLocXZ, camRotZ(),
-                         adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
-    }
-    else if (id >= 71 && id <= 74)
-    {
+        break;
+
+    case 71:
         toolObj = 1;
         setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
                          adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
-    }
-    else
-    {
+        break;
+
+    case 80:
+        toolObj = 2;
+        setToolCallbacks(adjustLocXZ, camRotZ(),
+                         adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
+
+        break;
+
+    case 81:
+        toolObj = 2;
+        setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
+                         adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
+
+        break;
+    default:
         printf("Error in lightMenu\n");
         exit(1);
+        break;
     }
 }
 
