@@ -81,6 +81,7 @@ int currObject = -1;               // The current object
 int toolObj = -1;                  // The object currently being modified
 //------Menu Items -----------------------------------------------------------
 int deleteId = 0;
+int duplicateId = 0;
 
 //----------------------------------------------------------------------------
 //
@@ -530,6 +531,21 @@ static void redrawDeleteMenu()
     }
 }
 
+static void redrawDuplicateMenu()
+{
+    glutSetMenu(duplicateId);
+    while (glutGet(GLUT_MENU_NUM_ITEMS))
+    {
+        glutRemoveMenuItem(1);
+    }
+
+    for (size_t i = 0; i < nObjects; i++)
+    {
+        SceneObject so = sceneObjs[i];
+        glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
+    }
+}
+
 static void deleteMenu(int id)
 {
     deactivateTool();
@@ -540,6 +556,18 @@ static void deleteMenu(int id)
 
     nObjects--;
     redrawDeleteMenu();
+    redrawDuplicateMenu();
+}
+
+static void duplicateMenu(int id)
+{
+    SceneObject so = sceneObjs[id];
+
+    deactivateTool();
+    addObject(so.meshId);
+    sceneObjs[currObject] = so;
+    redrawDeleteMenu();
+    redrawDuplicateMenu();
 }
 
 static void objectMenu(int id)
@@ -739,10 +767,14 @@ static void makeMenu()
     deleteId = glutCreateMenu(deleteMenu);
     redrawDeleteMenu();
 
+    duplicateId = glutCreateMenu(duplicateMenu);
+    redrawDuplicateMenu();
+
     glutCreateMenu(mainmenu);
     glutAddMenuEntry("Rotate/Move Camera", 50);
     glutAddSubMenu("Add object", objectId);
     glutAddSubMenu("Delete object", deleteId);
+    glutAddSubMenu("Duplicate object", duplicateId);
     glutAddMenuEntry("Position/Scale", 41);
     glutAddMenuEntry("Rotation/Texture Scale", 55);
     glutAddSubMenu("Material", materialMenuId);
