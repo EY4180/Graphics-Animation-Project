@@ -456,15 +456,6 @@ void drawMesh(SceneObject sceneObj)
 }
 
 //----------------------------------------------------------------------------
-vec4 sphericalToCartesian(float theta, float phi, float magnitude)
-{
-    float Y = magnitude * sinf(theta);
-    float X = magnitude * cosf(theta) * cosf(phi);
-    float Z = magnitude * cosf(theta) * sinf(phi);
-
-    return vec4(X, Y, Z, 1.0);
-}
-
 void display(void)
 {
     numDisplayCalls++;
@@ -475,13 +466,11 @@ void display(void)
     float camRotUpAndOverRad = camRotUpAndOverDeg * DegreesToRadians;
     float camRotSidewaysRad = camRotSidewaysDeg * DegreesToRadians;
 
-    /*
     float Y = viewDist * sinf(camRotUpAndOverRad);
     float X = viewDist * cosf(camRotUpAndOverRad) * cosf(camRotSidewaysRad);
     float Z = viewDist * cosf(camRotUpAndOverRad) * sinf(camRotSidewaysRad);
-    */
 
-    vec4 eye = sphericalToCartesian(camRotUpAndOverRad, camRotSidewaysRad, viewDist);
+    vec4 eye = {X, Y, Z, 0.0};
     vec4 center = {0, 0, 0, 1.0};
     vec4 up = {0.0, 1.0, 0.0, 0.0};
 
