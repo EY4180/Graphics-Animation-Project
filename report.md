@@ -1,5 +1,6 @@
 # A
-The variables `camRotSidewaysDeg` and  `camRotUpAndOverDeg` are automatically
+
+The variables `camRotSidewaysDeg` and `camRotUpAndOverDeg` are automatically
 set by program when moving the mouse while clicking.
 
 To incorperate these values into the cameras position, the display callback
@@ -13,10 +14,13 @@ And the inbuilt function `LookAt` was used to generate the transformation
 matrix for the view.
 
 ## Original
+
 ```C
 view = Translate(0.0, 0.0, -viewDist);
 ```
+
 ## Modified
+
 ```C
     float camRotUpAndOverRad = camRotUpAndOverDeg * DegreesToRadians;
     float camRotSidewaysRad = camRotSidewaysDeg * DegreesToRadians;
@@ -25,12 +29,13 @@ view = Translate(0.0, 0.0, -viewDist);
     float X = viewDist * cosf(camRotUpAndOverRad) * cosf(camRotSidewaysRad);
     float Z = viewDist * cosf(camRotUpAndOverRad) * sinf(camRotSidewaysRad);
 
-	vec4 eye = {X, Y, Z, 0.0};
+    vec4 eye = {X, Y, Z, 0.0};
     vec4 center = {0, 0, 0, 1.0};
     vec4 up = {0.0, 1.0, 0.0, 0.0};
 
-	view = LookAt(eye, center, up);
+    view = LookAt(eye, center, up);
 ```
+
 # B
 
 # C
