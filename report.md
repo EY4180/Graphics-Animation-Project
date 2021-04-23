@@ -8,24 +8,29 @@ y-axis and `camRotUpAndOverDeg` to be the angle about the xz-plane. Then by usin
 a sperical coordinate system it is possible to turn these angles into cartesian
 coordinates.
 
-The original code was,
+Some extra steps had to be taken to convert the angles in degrees to radians.
+And the inbuilt function `LookAt` was used to generate the transformation
+matrix for the view.
+
+## Original
 ```C
 view = Translate(0.0, 0.0, -viewDist);
 ```
-
-The modified code was,
+## Modified
 ```C
-vec4 sphericalToCartesian(float theta, float phi, float magnitude)
-{
-    float Y = magnitude * sinf(theta);
-    float X = magnitude * cosf(theta) * cosf(phi);
-    float Z = magnitude * cosf(theta) * sinf(phi);
+    float camRotUpAndOverRad = camRotUpAndOverDeg * DegreesToRadians;
+    float camRotSidewaysRad = camRotSidewaysDeg * DegreesToRadians;
 
-    return vec4(X, Y, Z, 1.0);
-}
+    float Y = viewDist * sinf(camRotUpAndOverRad);
+    float X = viewDist * cosf(camRotUpAndOverRad) * cosf(camRotSidewaysRad);
+    float Z = viewDist * cosf(camRotUpAndOverRad) * sinf(camRotSidewaysRad);
 
+	vec4 eye = {X, Y, Z, 0.0};
+    vec4 center = {0, 0, 0, 1.0};
+    vec4 up = {0.0, 1.0, 0.0, 0.0};
+
+	view = LookAt(eye, center, up);
 ```
-
 # B
 
 # C
