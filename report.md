@@ -60,7 +60,7 @@ The order here is quite important. While the rotations and scaling can occur in
 any order, the translation must occur last as the rotations and scaling must
 be performed at the origin for correct results.
 
-The resulting matricies from each transformation are multiplied together to get
+The resulting matricies from each transformation were multiplied together to get
 the overall model matrix.
 
 # C
