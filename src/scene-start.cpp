@@ -277,8 +277,9 @@ static void adjustcamSideUp(vec2 su)
 
 static void adjustLocXZ(vec2 xz)
 {
-    sceneObjs[toolObj].loc[0] += xz[0];
-    sceneObjs[toolObj].loc[2] += xz[1];
+    vec4 translation = projection * view * vec4(xz[0], 0, xz[1], 0);
+    sceneObjs[toolObj].loc[0] += translation[0];
+    sceneObjs[toolObj].loc[2] += translation[2];
     printf("x: %f z: %f\n", sceneObjs[toolObj].loc[0], sceneObjs[toolObj].loc[2]);
 }
 
@@ -652,8 +653,8 @@ static void lightMenu(int id)
     {
     case 70:
         toolObj = 1;
-        setToolCallbacks(adjustLocXZ, camRotZ(),
-                         adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
+        setToolCallbacks(adjustLocXZ, mat2(1.0, 0, 0, 1.0),
+                         adjustBrightnessY, mat2(1.0, 0, 0, 1.0));
         break;
 
     case 71:
@@ -923,9 +924,6 @@ void reshape(int width, int height)
     }
 
     projection = perspProjection;
-
-    glUniform1f(glGetUniformLocation(shaderProgram, "width"), (float)width);
-    glUniform1f(glGetUniformLocation(shaderProgram, "height"), (float)height);
 }
 
 //----------------------------------------------------------------------------
