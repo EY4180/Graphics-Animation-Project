@@ -5,7 +5,6 @@ attribute vec2 vTexCoord;
 uniform vec4 LightPosition[3]; // positions of the point source
 uniform mat4 ModelView;
 uniform mat4 Projection;
-uniform vec3 AmbientProduct, DiffuseProduct, SpecularProduct;
 
 varying vec2 texCoord;
 varying vec3 pointVector; // vector from vertex to point light

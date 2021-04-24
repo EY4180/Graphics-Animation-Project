@@ -1,18 +1,17 @@
 varying vec2 texCoord;  // The third coordinate is always 0.0 and is discarded
-varying vec3 eyeVector; // vector from point to light
+varying vec3 eyeVector; // vector from point to eye
 
-varying vec3 pointVector; // vector from point to eye
-varying vec3 spotVector; // vector from point to eye
-varying vec3 normalVector; // vector from point to light
-varying vec4 directionalVector; // vector from origin to directional light
+varying vec3 pointVector; // vector from vertex to point light
+varying vec3 spotVector; // vector from vertex to spot light
+varying vec3 normalVector; // surface normal vector
+varying vec3 directionalVector; // vector from origin to directional light
 
-uniform vec3 spotDirection;
+uniform vec3 spotDirection; // vector where the spotlight points
 uniform vec3 ColorVector[3]; // rgb values of lights
 uniform vec3 GlobalAmbient;
 
 uniform float AmbientProduct, DiffuseProduct, SpecularProduct, Shininess;
 uniform float texScale;
-uniform float width, height;
 uniform sampler2D texture;
 
 vec3 getIntensity(in vec3 lightVector)
@@ -70,9 +69,10 @@ void main()
 {
     vec3 pointColor = getColor(pointVector, ColorVector[0], normalVector, eyeVector);
     vec3 directionalColor = getColor(directionalVector.xyz, ColorVector[1], normalVector, eyeVector);
-    
     vec3 spotColor = getColor(spotVector, ColorVector[2], normalVector, eyeVector);
-    if (degrees(acos(dot(normalize(spotVector), spotDirection))) > 15.0) {
+
+    float angle = degrees(acos(dot(normalize(spotVector), spotDirection)));
+    if (angle > 15.0) {
         spotColor = vec3(0.0, 0.0, 0.0);
     }
 
@@ -80,6 +80,6 @@ void main()
         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
     }
     else {
-        gl_FragColor = vec4(GlobalAmbient + spotColor, 1.0 ) * texture2D( texture, texCoord * 2.0 );
+        gl_FragColor = vec4(GlobalAmbient + spotColor + directionalColor + pointColor, 1.0 ) * texture2D( texture, texCoord * 2.0 );
     }
 }

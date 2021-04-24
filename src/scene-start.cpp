@@ -382,7 +382,8 @@ void init(void)
     sceneObjs[0].loc = vec4(0.0, 0.0, 0.0, 1.0);
     sceneObjs[0].scale = 10.0;
     sceneObjs[0].angles[0] = 90.0; // Rotate it.
-    sceneObjs[0].texScale = 5.0;   // Repeat the texture.
+    sceneObjs[0].shine = 1.0;
+    sceneObjs[0].texScale = 5.0; // Repeat the texture.
 
     addObject(55); // Sphere for the first light
     sceneObjs[1].loc = vec4(2.0, 1.0, 1.0, 1.0);
@@ -393,8 +394,8 @@ void init(void)
     addObject(55); // Sphere for the directional light
     sceneObjs[2].loc = vec4(0.0, 1.0, 0.0, 1.0);
     sceneObjs[2].scale = 0.25;
-    sceneObjs[2].texId = 0;        // Plain texture
-    sceneObjs[2].brightness = 0.2; // The light's brightness is 5 times this (below).
+    sceneObjs[2].texId = 0;         // Plain texture
+    sceneObjs[2].brightness = 0.05; // The light's brightness is 5 times this (below).
 
     addObject(55); // Sphere for the spot light
     sceneObjs[3].loc = vec4(2.0, 3.0, 1.0, 1.0);
@@ -472,7 +473,7 @@ void display(void)
 
     const vec4 eye = {X, Y, Z, 1};
     const vec4 center = {0, 0, 0, 1};
-    const vec4 up = {0, 1, 0 ,0};
+    const vec4 up = {0, 1, 0, 0};
 
     view = LookAt(eye, center, up);
 
@@ -480,6 +481,7 @@ void display(void)
     const int totalLights = sizeof(lightSources) / sizeof(*lightSources);
     vec4 lightPosition[totalLights];
     vec3 lightRGB[totalLights];
+    vec4 spotDirection = view * ((RotateX(spotX) * RotateZ(spotY)) * up);
 
     for (size_t i = 0; i < totalLights; i++)
     {
@@ -491,7 +493,6 @@ void display(void)
                  *lightPosition);
     CheckError();
 
-    vec4 spotDirection = view * ((RotateX(spotX) * RotateZ(spotY)) * vec4(0.0, 1.0, 0.0, 0.0));
     glUniform3fv(glGetUniformLocation(shaderProgram, "spotDirection"), 1, spotDirection);
     CheckError();
 
