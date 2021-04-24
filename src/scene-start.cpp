@@ -741,7 +741,6 @@ static void materialMenu(int id)
         setToolCallbacks(adjustAmbientDiffuse, mat2(100, 0, 0, 100),
                          adjustShineSpecular, mat2(100, 0, 0, 100));
     }
-    // You'll need to fill in the remaining menu items here.
     else
     {
         printf("Error in materialMenu\n");
