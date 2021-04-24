@@ -1,11 +1,7 @@
 # A
 
 The variables `camRotSidewaysDeg` and `camRotUpAndOverDeg` are automatically
-set by program when moving the mouse while clicking.
-
-To incorperate these values into the cameras position, the display callback
-needed to be modified. Firstly, define `camRotSidewaysDeg` as the angle about the
-y-axis and `camRotUpAndOverDeg` to be the angle about the xz-plane. Then by using
+set by program when moving the mouse while clicking. By using
 a sperical coordinate system it is possible to turn these angles into cartesian
 coordinates.
 
@@ -17,29 +13,6 @@ Because the `up` vector is constant, an issue arises when `camRotUpAndOverDeg`
 exceeds +-90 degrees. At this angle of rotation, the `up` vector is incorrect and
 the camera flips. To prevent the camera from being rotated beyond +-90 degrees,
 the values were clamped between +-88 degrees.
-
-## Original
-
-```C++
-view = Translate(0.0, 0.0, -viewDist);
-```
-
-## Modified
-
-```C++
-float camRotUpAndOverRad = camRotUpAndOverDeg * DegreesToRadians;
-float camRotSidewaysRad = camRotSidewaysDeg * DegreesToRadians;
-
-float Y = viewDist * sinf(camRotUpAndOverRad);
-float X = viewDist * cosf(camRotUpAndOverRad) * cosf(camRotSidewaysRad);
-float Z = viewDist * cosf(camRotUpAndOverRad) * sinf(camRotSidewaysRad);
-
-const vec4 eye = {X, Y, Z, 1};
-const vec4 center = {0, 0, 0, 1};
-const vec4 up = {0, 1, 0, 0};
-
-view = LookAt(eye, center, up);
-```
 
 # B
 
@@ -64,37 +37,11 @@ The resulting matricies from each transformation were multiplied together to get
 the overall model matrix.
 
 # C
-
-To get the color adjust menu working, we first look at the ID for the color
-adjust menu and set the handler in the materialMenu function.
-
-When the materialMenu function gets an ID to adjust color, it will set the
-current tool object to the current object and attatch the following two functions
-to the mouse event handler.
-
 The matracies to scale the mouse movements was set at an arbitrary value of 100.
 This was just makes the adjusting more sensitive so it is easier to see.
 
 As per requirements there is some clamping on the shine value to have it range
 between 0 and 100.
-
-## Modified
-
-```C++
-static void adjustShineSpecular(vec2 ss)
-{
-    sceneObjs[toolObj].shine += ss[0];
-    sceneObjs[toolObj].shine = fmax(sceneObjs[toolObj].shine, 0.0);
-    sceneObjs[toolObj].shine = fmin(sceneObjs[toolObj].shine, 100.0);
-    sceneObjs[toolObj].specular += ss[1];
-}
-
-static void adjustAmbientDiffuse(vec2 ad)
-{
-    sceneObjs[toolObj].ambient += ad[0];
-    sceneObjs[toolObj].diffuse += ad[1];
-}
-```
 
 # D
 
