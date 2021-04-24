@@ -76,6 +76,7 @@ typedef struct
 
 const int maxObjects = 1024; // Scenes with more than 1024 objects seem unlikely
 const vec3 globalAmbient = {0.1, 0.1, 0.1};
+const mat2 mouseSensitivity = {10, 0, 0, 10};
 
 SceneObject sceneObjs[maxObjects]; // An array storing the objects currently in the scene.
 int nObjects = 0;                  // How many objects are currenly in the scene.
@@ -334,7 +335,7 @@ static void addObject(int id)
     sceneObjs[nObjects].texScale = 2.0;
 
     toolObj = currObject = nObjects++;
-    setToolCallbacks(adjustLocXZ, camRotZ(),
+    setToolCallbacks(adjustLocXZ, mouseSensitivity,
                      adjustScaleY, mat2(0.05, 0, 0, 10.0));
     glutPostRedisplay();
 }
@@ -653,7 +654,7 @@ static void lightMenu(int id)
     {
     case 70:
         toolObj = 1;
-        setToolCallbacks(adjustLocXZ, mat2(1.0, 0, 0, 1.0),
+        setToolCallbacks(adjustLocXZ, mouseSensitivity,
                          adjustBrightnessY, mat2(1.0, 0, 0, 1.0));
         break;
 
@@ -665,7 +666,7 @@ static void lightMenu(int id)
 
     case 80:
         toolObj = 2;
-        setToolCallbacks(adjustLocXZ, camRotZ(),
+        setToolCallbacks(adjustLocXZ, mouseSensitivity,
                          adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
         break;
 
@@ -677,7 +678,7 @@ static void lightMenu(int id)
 
     case 90:
         toolObj = 3;
-        setToolCallbacks(adjustLocXZ, camRotZ(),
+        setToolCallbacks(adjustLocXZ, mouseSensitivity,
                          adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
         break;
 
@@ -766,7 +767,7 @@ static void mainmenu(int id)
     if (id == 41 && currObject >= 0)
     {
         toolObj = currObject;
-        setToolCallbacks(adjustLocXZ, camRotZ(),
+        setToolCallbacks(adjustLocXZ, mouseSensitivity,
                          adjustScaleY, mat2(0.05, 0, 0, 10));
     }
     if (id == 50)
