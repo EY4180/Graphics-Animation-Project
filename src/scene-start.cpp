@@ -470,31 +470,29 @@ void display(void)
     float X = viewDist * cosf(camRotUpAndOverRad) * cosf(camRotSidewaysRad);
     float Z = viewDist * cosf(camRotUpAndOverRad) * sinf(camRotSidewaysRad);
 
-    vec4 eye = {X, Y, Z, 0.0};
-    vec4 center = {0, 0, 0, 1.0};
-    vec4 up = {0.0, 1.0, 0.0, 0.0};
+    const vec4 eye = {X, Y, Z, 1};
+    const vec4 center = {0, 0, 0, 1};
+    const vec4 up = {0, 1, 0 ,0};
 
     view = LookAt(eye, center, up);
 
     SceneObject lightSources[] = {sceneObjs[1], sceneObjs[2], sceneObjs[3]};
     const int totalLights = sizeof(lightSources) / sizeof(*lightSources);
     vec4 lightPosition[totalLights];
-    vec4 lightDirection[totalLights];
     vec3 lightRGB[totalLights];
 
     for (size_t i = 0; i < totalLights; i++)
     {
         lightRGB[i] = lightSources[i].rgb * lightSources[i].brightness * 2.0;
         lightPosition[i] = view * lightSources[i].loc;
-        lightDirection[i] = view * ((RotateX(spotX) * RotateZ(spotY)) * vec4({0.0, 1.0, 0.0, 0.0}));
     }
 
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), totalLights,
                  *lightPosition);
     CheckError();
 
-    glUniform4fv(glGetUniformLocation(shaderProgram, "DirectionVector"), totalLights,
-                 *lightDirection);
+    vec4 spotDirection = view * ((RotateX(spotX) * RotateZ(spotY)) * vec4(0.0, 1.0, 0.0, 0.0));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "spotDirection"), 1, spotDirection);
     CheckError();
 
     glUniform3fv(glGetUniformLocation(shaderProgram, "ColorVector"), totalLights,

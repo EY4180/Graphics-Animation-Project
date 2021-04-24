@@ -1,11 +1,12 @@
-in vec2 texCoord;  // The third coordinate is always 0.0 and is discarded
-in vec3 eyeVector; // vector from point to light
-in vec3 pointVector; // vector from point to eye
-in vec3 spotVector; // vector from point to eye
-in vec3 normalVector; // vector from point to light
+varying vec2 texCoord;  // The third coordinate is always 0.0 and is discarded
+varying vec3 eyeVector; // vector from point to light
 
-uniform vec4 DirectionVector[3]; // direction of lights
-uniform vec4 LightPosition[3]; // positions of the point source
+varying vec3 pointVector; // vector from point to eye
+varying vec3 spotVector; // vector from point to eye
+varying vec3 normalVector; // vector from point to light
+varying vec4 directionalVector; // vector from origin to directional light
+
+uniform vec3 spotDirection;
 uniform vec3 ColorVector[3]; // rgb values of lights
 uniform vec3 GlobalAmbient;
 
@@ -68,10 +69,10 @@ vec3 getColor(in vec3 light, in vec3 rgb, in vec3 normal, in vec3 eye)
 void main()
 {
     vec3 pointColor = getColor(pointVector, ColorVector[0], normalVector, eyeVector);
-    vec3 directionalColor = getColor(normalize(LightPosition[1].xyz), ColorVector[1], normalVector, eyeVector);
+    vec3 directionalColor = getColor(directionalVector.xyz, ColorVector[1], normalVector, eyeVector);
     
     vec3 spotColor = getColor(spotVector, ColorVector[2], normalVector, eyeVector);
-    if (degrees(acos(dot(normalize(spotVector), normalize(DirectionVector[2].xyz)))) > 15.0) {
+    if (degrees(acos(dot(normalize(spotVector), spotDirection))) > 15.0) {
         spotColor = vec3(0.0, 0.0, 0.0);
     }
 
