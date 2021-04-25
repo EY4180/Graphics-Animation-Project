@@ -14,6 +14,17 @@ varying vec3 directionalVector; // vector from origin to directional light
 varying vec3 eyeVector; // vector from point to eye
 varying vec3 normalVector; // surface normal vector
 
+vec3 getIntensity(in vec3 lightVector)
+{
+    float distance = length(lightVector);
+    float csrc = 50.0; // source intensity 
+    float kc = 5.0; // constant attenuation
+    float kl = 1.0; // linear attenuation
+    float kq = 1.0; // quadratic attenuation
+    float intensity = csrc / (kc + kl * distance + kq * distance * distance);
+    return vec3(intensity, intensity, intensity);
+}
+
 void main()
 {
     vec4 vpos = vec4(vPosition, 1.0);

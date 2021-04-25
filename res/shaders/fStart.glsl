@@ -37,7 +37,7 @@ float getGaussian(in vec3 normal, in vec3 half)
 // more complex method of calculating specular coefficient
 float getSpecular(in vec3 normal, in vec3 light, in vec3 eye)
 {
-    float n = 10.0;
+    float n = Shininess;
     vec3 reflection = reflect(light, normal);
     float cosTheta = clamp(dot(reflection, eye), 0.0, 1.0);
     float specularCoefficient = pow(cosTheta, n);
@@ -57,7 +57,6 @@ vec3 getColor(in vec3 light, in vec3 rgb, in vec3 normal, in vec3 eye)
     float Kd = clamp(dot(nLight, nNormal), 0.0, 1.0);
     vec3 diffuse = Kd * DiffuseProduct * rgb;
 
-    //float Ks = getGaussian(nNormal, nHalf);
     float Ks = getSpecular(nNormal, nLight, nEye);
     vec3 specular = Ks * SpecularProduct * rgb;    
 

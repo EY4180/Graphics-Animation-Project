@@ -5,9 +5,11 @@ set by program when moving the mouse while clicking. By using
 a sperical coordinate system it is possible to turn these angles into cartesian
 coordinates.
 
-Some extra steps had to be taken to convert the angles in degrees to radians.
-And the inbuilt function `LookAt` was used to generate the transformation
-matrix for the view.
+Using the left mouse button, the program rotates horizontally in the direction
+that the mouse was dragged. Dragging the mouse vertically zooms in/out.
+
+Using the middle mouse button, the program rotates horizontally or vertically.
+Essentially allowing you to orbit around the origin.
 
 Because the `up` vector is constant, an issue arises when `camRotUpAndOverDeg`
 exceeds +-90 degrees. At this angle of rotation, the `up` vector is incorrect and
@@ -33,24 +35,111 @@ The order here is quite important. While the rotations and scaling can occur in
 any order, the translation must occur last as the rotations and scaling must
 be performed at the origin for correct results.
 
-The resulting matricies from each transformation were multiplied together to get
-the overall model matrix.
+Clicking the left mouse and dragging vertically will rotate an object about the
+x-axis. Horizontal dragging will cause rotation parallel to the y-axis.
+
+Clicking the middle mouse and dragging vertically increases/decrases the texture
+scale on the object. Horizontal dragging rotates the object about the z-axis.
 
 # C
-The matracies to scale the mouse movements was set at an arbitrary value of 100.
-This was just makes the adjusting more sensitive so it is easier to see.
+Using the left mouse button, you can move the mouse sources along the path of
+your mouse. For example, move the mouse up and the object moves into the screen,
+move the mouse left and the object moves to the left of the screen. All objects
+move in this intuitive manner. 
 
-As per requirements there is some clamping on the shine value to have it range
-between 0 and 100.
+Using the middle mouse button can change the y-position of a light source and
+alter its brightness.
 
+Left mouse and dragging vertically increases the diffuse lighting
+(up is increase and down is decrease).
+
+Left mouse and dragging horizontally changes the ambient lighting 
+(left is decreas and right is increase).
+
+Middle mouse and dragging horizontally changes the shine
+(left is decreas and right is increase).
+Middle mouse and dragging vertically changes specular
+(up is increase and down is decrease).
+
+It all of these values are clamped between 0.0 and 100.0 which I thought were
+reasonable limits for this program.
 # D
+The program is capable of zooming in as much as they want. Clipping of the
+near plane was set at an arbitrary low value. You can go as close to the object
+as you want.
 
+The main problem with the original code was that it used the `Frustrum()`
+method rather than the `perspective` method (which can achieve a far closer
+near plane and prevent clipping). 
 # E
+After the screen stops becomming a square, the FOV adapts so that the content on
+the screen does not change. This works both when reshaping the width and height.
+
+To solve this, I simply made the FOV a function of the screen width and height.
+The aspect ratio is calculated as `width/height` but in the case the the height
+is less than the width, I simply switch the components in the view matrix that
+correspond to the FOV transofmations. This is essentially how I calculate the
+FOV in the y-direction when height is less than width (normally FOV is assumed to
+be in the x-direction).
 
 # F
+I added a function in the vertex shader that takes the vector from the 
+light-source to the vertex and produces an intensity vector. This intensity
+vector is multiplied with the ambient, diffuse and specular components to
+produce the effect of light falling off with distance. Light falls of with the
+inverse square law. To get more good-looking results, I used the following
+attenuation equation,
 
+```C++
+float distance = length(lightVector);
+float csrc = 50.0; // source intensity 
+float kc = 5.0; // constant attenuation
+float kl = 1.0; // linear attenuation
+float kq = 1.0; // quadratic attenuation
+float intensity = csrc / (kc + kl * distance + kq * distance * distance);
+return vec3(intensity, intensity, intensity);
+```
 # G
+The lighting in the vertex shader was very patchy. For example, when you move the light the circle of light underneath it changes its shape as it moves over the plane. This is because the plane is very low-poly and does not allow for accurate lighting calcualtions.
 
+To solve this, I simply moved the color calculations over to the fragment
+shader. The vertex shader only exists to pass the normal, eye and light
+vectors to the fragment shader. 
+
+This change makes moving light very smooth.
 # H
+Specular reflection was caluclated according to the equation,
+```C++
+float n = Shininess;
+vec3 reflection = reflect(light, normal);
+float cosTheta = clamp(dot(reflection, eye), 0.0, 1.0);
+float specularCoefficient = pow(cosTheta, n);
+return specularCoefficient;
+```
 
+Increasing values of `n` increase the amount of specular highlighting
+that occurs. This specular equation is designed to blow up then the
+eye is in the same direction to the reflected vector. This increase in
+specular coefficient will dominate the other RGB terms from 
+diffuse and ambient - tending towards the color white.
 # I
+The directional light appears as a big sphere, and its direction of
+illumination can be controlled by moving it around the world. Its
+direction is the vector between the lights position and the origin.
+
+When adding multiple lights it was important to have separate color
+vectors as each light has its own modifiable color. Early on I had
+a bug where turning one light green turned all of them green.
+
+The program correctly allows each light to have its own separate RGB
+values which affect the final render.
+# J
+Users can delete any object that they want from a dropdown menu. However,
+users can not delete any of the light sources or ground planes.
+Similarly, you can duplicate any object on the screen from a drop-down.
+
+The spot-light can have both its position and direction changed.
+Its lighting angle is set at 15 degrees and can not be changed.
+Its position is set identically to the other lights as described earlier.
+And its direction is set by rotating the object like you would any other
+object.
