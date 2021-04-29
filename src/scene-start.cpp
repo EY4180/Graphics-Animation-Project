@@ -900,7 +900,6 @@ void reshape(int width, int height)
     //         the window.
 
     GLfloat nearDist = 0.005; // arbitray small value
-    GLfloat fov = 90;         // degrees
     GLfloat aspectRatio = 0;
     // select fovy
     if (width < height)
