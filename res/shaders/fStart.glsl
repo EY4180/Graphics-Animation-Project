@@ -74,6 +74,9 @@ void main()
     if (angle > 15.0) {
         spotColor = vec3(0.0, 0.0, 0.0);
     }
+    else {
+        spotColor =  spotColor * pow(cos(radians(angle)), 50.0);
+    }
 
     if(gl_FrontFacing) {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
