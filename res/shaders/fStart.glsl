@@ -59,6 +59,8 @@ vec3 getColor(in vec3 light, in vec3 rgb, in vec3 normal, in vec3 eye)
 
     float Ks = getSpecular(nNormal, nLight, nEye);
     vec3 specular = Ks * SpecularProduct * rgb;    
+    float average = (specular.r + specular.g + specular.b) / 3.0;
+    specular = vec3(average, average,  average);
 
     vec3 totalColor = ambient + (diffuse + specular) * intensity;
     return totalColor;
