@@ -85,6 +85,7 @@ int toolObj = -1;                  // The object currently being modified
 //------Menu Items -----------------------------------------------------------
 int deleteId = 0;
 int duplicateId = 0;
+const int numLights = 4;
 
 //----------------------------------------------------------------------------
 //
@@ -533,7 +534,7 @@ static void redrawDeleteMenu()
         glutRemoveMenuItem(1);
     }
 
-    for (size_t i = 0; i < nObjects; i++)
+    for (size_t i = numLights; i < nObjects; i++)
     {
         SceneObject so = sceneObjs[i];
         glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
@@ -548,7 +549,7 @@ static void redrawDuplicateMenu()
         glutRemoveMenuItem(1);
     }
 
-    for (size_t i = 0; i < nObjects; i++)
+    for (size_t i = numLights; i < nObjects; i++)
     {
         SceneObject so = sceneObjs[i];
         glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
