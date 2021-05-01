@@ -630,6 +630,8 @@ static void adjustShineSpecular(vec2 ss)
     sceneObjs[toolObj].shine = fmax(sceneObjs[toolObj].shine, 0.0);
     sceneObjs[toolObj].shine = fmin(sceneObjs[toolObj].shine, 100.0);
     sceneObjs[toolObj].specular += ss[1];
+    sceneObjs[toolObj].specular = fmax(sceneObjs[toolObj].specular, 0.0);
+    sceneObjs[toolObj].specular = fmin(sceneObjs[toolObj].specular, 100.0);
 
     printf("shine: %f specular: %f\n", sceneObjs[toolObj].shine, sceneObjs[toolObj].specular);
 }
@@ -637,7 +639,12 @@ static void adjustShineSpecular(vec2 ss)
 static void adjustAmbientDiffuse(vec2 ad)
 {
     sceneObjs[toolObj].ambient += ad[0];
+    sceneObjs[toolObj].ambient = fmax(sceneObjs[toolObj].ambient, 0.0);
+    sceneObjs[toolObj].ambient = fmin(sceneObjs[toolObj].ambient, 100.0);
     sceneObjs[toolObj].diffuse += ad[1];
+    sceneObjs[toolObj].diffuse = fmax(sceneObjs[toolObj].diffuse, 0.0);
+    sceneObjs[toolObj].diffuse = fmin(sceneObjs[toolObj].diffuse, 100.0);
+
     printf("diffuse: %f ambient: %f\n", sceneObjs[toolObj].diffuse, sceneObjs[toolObj].ambient);
 }
 
