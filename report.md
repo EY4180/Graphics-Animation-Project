@@ -58,27 +58,32 @@ be performed at the origin for correct results.
   - Vertical: Increases/decrases the texture scale
 
 # C
-Using the left mouse button, you can move the mouse sources along the path of
-your mouse. For example, move the mouse up and the object moves into the screen,
-move the mouse left and the object moves to the left of the screen. All objects
-move in this intuitive manner. 
+## Function
+Adjust the way light interacts with an object by adjusting the diffuse, specular
+and ambient properties. Also enable movement of the light source.
+## Implementation
+Mainly, I simply used the functions with the prefix `adjust` to modify the 
+parameters. Most of the mouse movement quantisation was done already and all
+that I had to do was use the two values passed into the function I was modifying.
+### Light Source Controls
+- Left Mouse Button
+  - Both: Move the light source in the direction of the mouse movement
 
-Using the middle mouse button can change the y-position of a light source and
-alter its brightness.
+- Middle Mouse Button
+  - Horizontal: Increase/decrease the brightness of the light
+  - Vertical: Move the light parallel to the y-axis (up/down)
+### Object Controls
+- Left Mouse Button
+  - Horizontal: Adjust ambient lighting (left is decrease and right is increase)
+  - Vertical: Adjust diffuse lighting (up is increase and down is decrease)
 
-Left mouse and dragging vertically increases the diffuse lighting
-(up is increase and down is decrease).
+- Middle Mouse Button
+  - Horizontal: Adjust shine value (left is decreas and right is increase)
+  - Vertical: Adjsut specular lighting (up is increase and down is decrease)
 
-Left mouse and dragging horizontally changes the ambient lighting 
-(left is decreas and right is increase).
+*Note - all of these values are clamped between 0.0 and 100.0 which I thought were
+reasonable limits for this program.*
 
-Middle mouse and dragging horizontally changes the shine
-(left is decreas and right is increase).
-Middle mouse and dragging vertically changes specular
-(up is increase and down is decrease).
-
-It all of these values are clamped between 0.0 and 100.0 which I thought were
-reasonable limits for this program.
 # D
 The program is capable of zooming in as much as they want. Clipping of the
 near plane was set at an arbitrary low value. You can go as close to the object
