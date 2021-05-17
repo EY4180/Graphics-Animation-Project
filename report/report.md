@@ -1,5 +1,6 @@
 # Edward Yamamoto (22709905)
 *All parts of the project were successfully completed*
+
 *The version of the program that uses vertex shading is in the folder `old-code`*
 
 # A
