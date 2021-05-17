@@ -34,8 +34,6 @@ GLuint projectionU, modelViewU;       // IDs for uniform variables (from glGetUn
 static float viewDist = 1.5;         // Distance from the camera to the centre of the scene
 static float camRotSidewaysDeg = 0;  // rotates the camera sideways around the centre
 static float camRotUpAndOverDeg = 0; // rotates the camera up and over the centre.
-static float spotX = 0;
-static float spotY = 0;
 
 mat4 projection; // Projection matrix - set in the reshape function
 mat4 view;       // View matrix - set in the display function.
@@ -76,16 +74,11 @@ typedef struct
 
 const int maxObjects = 1024; // Scenes with more than 1024 objects seem unlikely
 const vec3 globalAmbient = {0.1, 0.1, 0.1};
-const mat2 mouseSensitivity = {10, 0, 0, 10};
 
 SceneObject sceneObjs[maxObjects]; // An array storing the objects currently in the scene.
 int nObjects = 0;                  // How many objects are currenly in the scene.
 int currObject = -1;               // The current object
 int toolObj = -1;                  // The object currently being modified
-//------Menu Items -----------------------------------------------------------
-int deleteId = 0;
-int duplicateId = 0;
-const int numLights = 4;
 
 //----------------------------------------------------------------------------
 //
@@ -219,8 +212,11 @@ static void mouseClickOrScroll(int button, int state, int x, int y)
     {
         if (state == GLUT_DOWN)
         {
-            const bool shift = glutGetModifiers() == GLUT_ACTIVE_SHIFT;
-            activateTool(shift ? GLUT_MIDDLE_BUTTON : GLUT_LEFT_BUTTON);
+            // possibly change function depending on
+            // - Mouse 1 + Shift
+            // - Mouse 1
+            const bool shift = glutGetModifiers() != GLUT_ACTIVE_SHIFT;
+            activateTool(shift ? button : GLUT_LEFT_BUTTON);
         }
         else
         {
@@ -279,9 +275,8 @@ static void adjustcamSideUp(vec2 su)
 
 static void adjustLocXZ(vec2 xz)
 {
-    vec4 translation = projection * view * vec4(xz[0], 0, xz[1], 0);
-    sceneObjs[toolObj].loc[0] += translation[0];
-    sceneObjs[toolObj].loc[2] += translation[2];
+    sceneObjs[toolObj].loc[0] += xz[0];
+    sceneObjs[toolObj].loc[2] += xz[1];
     printf("x: %f z: %f\n", sceneObjs[toolObj].loc[0], sceneObjs[toolObj].loc[2]);
 }
 
@@ -336,7 +331,7 @@ static void addObject(int id)
     sceneObjs[nObjects].texScale = 2.0;
 
     toolObj = currObject = nObjects++;
-    setToolCallbacks(adjustLocXZ, mouseSensitivity,
+    setToolCallbacks(adjustLocXZ, camRotZ(),
                      adjustScaleY, mat2(0.05, 0, 0, 10.0));
     glutPostRedisplay();
 }
@@ -385,26 +380,13 @@ void init(void)
     sceneObjs[0].loc = vec4(0.0, 0.0, 0.0, 1.0);
     sceneObjs[0].scale = 10.0;
     sceneObjs[0].angles[0] = 90.0; // Rotate it.
-    sceneObjs[0].shine = 1.0;
-    sceneObjs[0].texScale = 5.0; // Repeat the texture.
+    sceneObjs[0].texScale = 5.0;   // Repeat the texture.
 
     addObject(55); // Sphere for the first light
     sceneObjs[1].loc = vec4(2.0, 1.0, 1.0, 1.0);
     sceneObjs[1].scale = 0.1;
     sceneObjs[1].texId = 0;        // Plain texture
     sceneObjs[1].brightness = 0.2; // The light's brightness is 5 times this (below).
-
-    addObject(55); // Sphere for the directional light
-    sceneObjs[2].loc = vec4(0.0, 1.0, 0.0, 1.0);
-    sceneObjs[2].scale = 0.25;
-    sceneObjs[2].texId = 0;         // Plain texture
-    sceneObjs[2].brightness = 0.05; // The light's brightness is 5 times this (below).
-
-    addObject(55); // Sphere for the spot light
-    sceneObjs[3].loc = vec4(2.0, 3.0, 1.0, 1.0);
-    sceneObjs[3].scale = 0.1;
-    sceneObjs[3].texId = 0;        // Plain texture
-    sceneObjs[3].brightness = 0.2; // The light's brightness is 5 times this (below).
 
     addObject(rand() % numMeshes); // A test mesh
 
@@ -460,6 +442,7 @@ void drawMesh(SceneObject sceneObj)
 }
 
 //----------------------------------------------------------------------------
+
 void display(void)
 {
     numDisplayCalls++;
@@ -474,43 +457,29 @@ void display(void)
     float X = viewDist * cosf(camRotUpAndOverRad) * cosf(camRotSidewaysRad);
     float Z = viewDist * cosf(camRotUpAndOverRad) * sinf(camRotSidewaysRad);
 
-    const vec4 eye = {X, Y, Z, 1};
-    const vec4 center = {0, 0, 0, 1};
-    const vec4 up = {0, 1, 0, 0};
+    vec4 eye = {X, Y, Z, 1.0};
+    vec4 center = {0, 0, 0, 1.0};
+    vec4 up = {0.0, 1.0, 0.0, 0.0};
 
     view = LookAt(eye, center, up);
 
-    SceneObject lightSources[] = {sceneObjs[1], sceneObjs[2], sceneObjs[3]};
-    const int totalLights = sizeof(lightSources) / sizeof(*lightSources);
-    vec4 lightPosition[totalLights];
-    vec3 lightRGB[totalLights];
-    vec4 spotDirection = view * ((RotateX(spotX) * RotateZ(spotY)) * up);
+    SceneObject lightObj1 = sceneObjs[1];
+    vec4 lightPosition = view * lightObj1.loc;
 
-    for (size_t i = 0; i < totalLights; i++)
-    {
-        lightRGB[i] = lightSources[i].rgb * lightSources[i].brightness * 2.0;
-        lightPosition[i] = view * lightSources[i].loc;
-    }
-
-    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), totalLights,
-                 *lightPosition);
-    CheckError();
-
-    glUniform3fv(glGetUniformLocation(shaderProgram, "spotDirection"), 1, spotDirection);
-    CheckError();
-
-    glUniform3fv(glGetUniformLocation(shaderProgram, "ColorVector"), totalLights,
-                 *lightRGB);
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"),
+                 1, lightPosition);
     CheckError();
 
     for (int i = 0; i < nObjects; i++)
     {
         SceneObject so = sceneObjs[i];
-        glUniform1f(glGetUniformLocation(shaderProgram, "AmbientProduct"), so.ambient);
+
+        vec3 rgb = so.rgb * lightObj1.rgb * so.brightness * lightObj1.brightness * 2.0;
+        glUniform3fv(glGetUniformLocation(shaderProgram, "AmbientProduct"), 1, so.ambient * rgb);
         CheckError();
 
-        glUniform1f(glGetUniformLocation(shaderProgram, "DiffuseProduct"), so.diffuse);
-        glUniform1f(glGetUniformLocation(shaderProgram, "SpecularProduct"), so.specular);
+        glUniform3fv(glGetUniformLocation(shaderProgram, "DiffuseProduct"), 1, so.diffuse * rgb);
+        glUniform3fv(glGetUniformLocation(shaderProgram, "SpecularProduct"), 1, so.specular * rgb);
         glUniform1f(glGetUniformLocation(shaderProgram, "Shininess"), so.shine);
         CheckError();
 
@@ -526,65 +495,11 @@ void display(void)
 //----------------------------------------------------------------------------
 //------Menus-----------------------------------------------------------------
 //----------------------------------------------------------------------------
-static void redrawDeleteMenu()
-{
-    glutSetMenu(deleteId);
-    while (glutGet(GLUT_MENU_NUM_ITEMS))
-    {
-        glutRemoveMenuItem(1);
-    }
-
-    for (size_t i = numLights; i < nObjects; i++)
-    {
-        SceneObject so = sceneObjs[i];
-        glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
-    }
-}
-
-static void redrawDuplicateMenu()
-{
-    glutSetMenu(duplicateId);
-    while (glutGet(GLUT_MENU_NUM_ITEMS))
-    {
-        glutRemoveMenuItem(1);
-    }
-
-    for (size_t i = numLights; i < nObjects; i++)
-    {
-        SceneObject so = sceneObjs[i];
-        glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
-    }
-}
-
-static void deleteMenu(int id)
-{
-    deactivateTool();
-    for (size_t i = id; i < nObjects; i++)
-    {
-        sceneObjs[i] = sceneObjs[i + 1];
-    }
-
-    nObjects--;
-    redrawDeleteMenu();
-    redrawDuplicateMenu();
-}
-
-static void duplicateMenu(int id)
-{
-    SceneObject so = sceneObjs[id];
-
-    deactivateTool();
-    addObject(so.meshId);
-    sceneObjs[currObject] = so;
-    redrawDeleteMenu();
-    redrawDuplicateMenu();
-}
 
 static void objectMenu(int id)
 {
     deactivateTool();
     addObject(id);
-    redrawDeleteMenu();
 }
 
 static void texMenu(int id)
@@ -607,9 +522,6 @@ static void groundMenu(int id)
 static void adjustBrightnessY(vec2 by)
 {
     sceneObjs[toolObj].brightness += by[0];
-    sceneObjs[toolObj].brightness = fmax(sceneObjs[toolObj].brightness, 0.0);
-    sceneObjs[toolObj].brightness = fmin(sceneObjs[toolObj].brightness, 100.0);
-
     sceneObjs[toolObj].loc[1] += by[1];
 }
 
@@ -631,8 +543,6 @@ static void adjustShineSpecular(vec2 ss)
     sceneObjs[toolObj].shine = fmax(sceneObjs[toolObj].shine, 0.0);
     sceneObjs[toolObj].shine = fmin(sceneObjs[toolObj].shine, 100.0);
     sceneObjs[toolObj].specular += ss[1];
-    sceneObjs[toolObj].specular = fmax(sceneObjs[toolObj].specular, 0.0);
-    sceneObjs[toolObj].specular = fmin(sceneObjs[toolObj].specular, 100.0);
 
     printf("shine: %f specular: %f\n", sceneObjs[toolObj].shine, sceneObjs[toolObj].specular);
 }
@@ -640,72 +550,29 @@ static void adjustShineSpecular(vec2 ss)
 static void adjustAmbientDiffuse(vec2 ad)
 {
     sceneObjs[toolObj].ambient += ad[0];
-    sceneObjs[toolObj].ambient = fmax(sceneObjs[toolObj].ambient, 0.0);
-    sceneObjs[toolObj].ambient = fmin(sceneObjs[toolObj].ambient, 100.0);
     sceneObjs[toolObj].diffuse += ad[1];
-    sceneObjs[toolObj].diffuse = fmax(sceneObjs[toolObj].diffuse, 0.0);
-    sceneObjs[toolObj].diffuse = fmin(sceneObjs[toolObj].diffuse, 100.0);
-
     printf("diffuse: %f ambient: %f\n", sceneObjs[toolObj].diffuse, sceneObjs[toolObj].ambient);
-}
-
-static void adjustSpotXZ(vec2 xy)
-{
-    spotX += xy[0];
-    spotY += xy[1];
 }
 
 static void lightMenu(int id)
 {
     deactivateTool();
-    switch (id)
+    if (id == 70)
     {
-    case 70:
         toolObj = 1;
-        setToolCallbacks(adjustLocXZ, mouseSensitivity,
-                         adjustBrightnessY, mat2(1.0, 0, 0, 1.0));
-        break;
-
-    case 71:
+        setToolCallbacks(adjustLocXZ, camRotZ(),
+                         adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
+    }
+    else if (id >= 71 && id <= 74)
+    {
         toolObj = 1;
         setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
                          adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
-        break;
-
-    case 80:
-        toolObj = 2;
-        setToolCallbacks(adjustLocXZ, mouseSensitivity,
-                         adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
-        break;
-
-    case 81:
-        toolObj = 2;
-        setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
-                         adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
-        break;
-
-    case 90:
-        toolObj = 3;
-        setToolCallbacks(adjustLocXZ, mouseSensitivity,
-                         adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
-        break;
-
-    case 91:
-        toolObj = 3;
-        setToolCallbacks(adjustSpotXZ, mat2(400, 0, 0, 400),
-                         adjustSpotXZ, mat2(400, 0, 0, 400));
-        break;
-
-    case 92:
-        toolObj = 3;
-        setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
-                         adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
-
-        break;
-    default:
+    }
+    else
+    {
         printf("Error in lightMenu\n");
         exit(1);
-        break;
     }
 }
 
@@ -751,6 +618,7 @@ static void materialMenu(int id)
         setToolCallbacks(adjustAmbientDiffuse, mat2(100, 0, 0, 100),
                          adjustShineSpecular, mat2(100, 0, 0, 100));
     }
+    // You'll need to fill in the remaining menu items here.
     else
     {
         printf("Error in materialMenu\n");
@@ -775,7 +643,7 @@ static void mainmenu(int id)
     if (id == 41 && currObject >= 0)
     {
         toolObj = currObject;
-        setToolCallbacks(adjustLocXZ, mouseSensitivity,
+        setToolCallbacks(adjustLocXZ, camRotZ(),
                          adjustScaleY, mat2(0.05, 0, 0, 10));
     }
     if (id == 50)
@@ -801,25 +669,14 @@ static void makeMenu()
     int groundMenuId = createArrayMenu(numTextures, textureMenuEntries, groundMenu);
 
     int lightMenuId = glutCreateMenu(lightMenu);
-    glutAddMenuEntry("Move Point Light", 70);
-    glutAddMenuEntry("R/G/B/All Point Light", 71);
-    glutAddMenuEntry("Move Directional Light", 80);
-    glutAddMenuEntry("R/G/B/All Directional Light", 81);
-    glutAddMenuEntry("Move Spot Light", 90);
-    glutAddMenuEntry("Change Spot Direction", 91);
-    glutAddMenuEntry("R/G/B/All Spot Light", 92);
-
-    deleteId = glutCreateMenu(deleteMenu);
-    redrawDeleteMenu();
-
-    duplicateId = glutCreateMenu(duplicateMenu);
-    redrawDuplicateMenu();
+    glutAddMenuEntry("Move Light 1", 70);
+    glutAddMenuEntry("R/G/B/All Light 1", 71);
+    glutAddMenuEntry("Move Light 2", 80);
+    glutAddMenuEntry("R/G/B/All Light 2", 81);
 
     glutCreateMenu(mainmenu);
     glutAddMenuEntry("Rotate/Move Camera", 50);
     glutAddSubMenu("Add object", objectId);
-    glutAddSubMenu("Delete object", deleteId);
-    glutAddSubMenu("Duplicate object", duplicateId);
     glutAddMenuEntry("Position/Scale", 41);
     glutAddMenuEntry("Rotation/Texture Scale", 55);
     glutAddSubMenu("Material", materialMenuId);
@@ -827,7 +684,6 @@ static void makeMenu()
     glutAddSubMenu("Ground Texture", groundMenuId);
     glutAddSubMenu("Lights", lightMenuId);
     glutAddMenuEntry("EXIT", 99);
-
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
@@ -908,6 +764,7 @@ void reshape(int width, int height)
     //         the window.
 
     GLfloat nearDist = 0.005; // arbitray small value
+    GLfloat fov = 90;         // degrees
     GLfloat aspectRatio = 0;
     // select fovy
     if (width < height)
