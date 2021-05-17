@@ -14,6 +14,11 @@ varying vec3 directionalVector; // vector from origin to directional light
 varying vec3 eyeVector; // vector from point to eye
 varying vec3 normalVector; // surface normal vector
 
+varying vec3 vertexShaderColour[3]; // colour as seen by the vertex shader
+// 0 - point
+// 1 - direction
+// 2 - spotlight
+
 vec3 getIntensity(in vec3 lightVector)
 {
     float distance = length(lightVector);

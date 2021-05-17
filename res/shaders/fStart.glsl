@@ -25,15 +25,6 @@ vec3 getIntensity(in vec3 lightVector)
     return vec3(intensity, intensity, intensity);
 }
 
-// pretty simple method for gettin a better specular coefficient
-// Gaussian Distribution m is a user defined constant for smoothness between 0 and 1
-float getGaussian(in vec3 normal, in vec3 half)
-{
-    float theta = acos(clamp(dot(normal, half), 0.0, 1.0)); // angle between normal and half vector
-    float specularCoefficient = exp(-pow(theta / Shininess, 2.0));
-    return specularCoefficient;
-}
-
 // more complex method of calculating specular coefficient
 float getSpecular(in vec3 normal, in vec3 light, in vec3 eye)
 {
