@@ -526,21 +526,6 @@ void display(void)
 //----------------------------------------------------------------------------
 //------Menus-----------------------------------------------------------------
 //----------------------------------------------------------------------------
-static void redrawDeleteMenu()
-{
-    glutSetMenu(deleteId);
-    while (glutGet(GLUT_MENU_NUM_ITEMS))
-    {
-        glutRemoveMenuItem(1);
-    }
-
-    for (size_t i = numLights; i < nObjects; i++)
-    {
-        SceneObject so = sceneObjs[i];
-        glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
-    }
-}
-
 static void redrawDuplicateMenu()
 {
     glutSetMenu(duplicateId);
@@ -554,6 +539,23 @@ static void redrawDuplicateMenu()
         SceneObject so = sceneObjs[i];
         glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
     }
+}
+
+static void redrawDeleteMenu()
+{
+    glutSetMenu(deleteId);
+    while (glutGet(GLUT_MENU_NUM_ITEMS))
+    {
+        glutRemoveMenuItem(1);
+    }
+
+    for (size_t i = numLights; i < nObjects; i++)
+    {
+        SceneObject so = sceneObjs[i];
+        glutAddMenuEntry(objectMenuEntries[so.meshId - 1], i);
+    }
+
+    redrawDuplicateMenu();
 }
 
 static void deleteMenu(int id)

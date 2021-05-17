@@ -147,7 +147,7 @@ FOV in the y-direction when height is less than width (normally FOV is assumed t
 be in the x-direction).
 
 # F
-
+![Vertex Shader](F.PNG)
 ## Function
 
 Implement light falloff in the vertex shader
@@ -172,6 +172,7 @@ return vec3(intensity, intensity, intensity);
 ```
 
 # G
+![Fragment Shader](G.PNG)
 
 ## Function
 
