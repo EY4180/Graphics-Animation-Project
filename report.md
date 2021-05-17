@@ -1,15 +1,26 @@
 # A
+## Function
+- Left Mouse Button
+  - Horizontal: Rotate the camera horizontally about the origin
+  - Vertical: Zoom in/out when moving up/down with respect to the screen
 
+- Middle Mouse Button
+  - Horizontal: Rotate the camera horizontally about the origin
+  - Vertical: Rotate the camera vertically about the origin
+
+## Implementation
+```C++
+    const vec4 eye = {X, Y, Z, 1};
+    const vec4 center = {0, 0, 0, 1};
+    const vec4 up = {0, 1, 0, 0};
+
+    view = LookAt(eye, center, up);
+```
 The variables `camRotSidewaysDeg` and `camRotUpAndOverDeg` are automatically
 set by program when moving the mouse while clicking. By using
 a sperical coordinate system it is possible to turn these angles into cartesian
-coordinates.
-
-Using the left mouse button, the program rotates horizontally in the direction
-that the mouse was dragged. Dragging the mouse vertically zooms in/out.
-
-Using the middle mouse button, the program rotates horizontally or vertically.
-Essentially allowing you to orbit around the origin.
+coordinates. These coordinates are then used with the inbuilt `LookAt()`
+function inside the display callback to set the view matrix.
 
 Because the `up` vector is constant, an issue arises when `camRotUpAndOverDeg`
 exceeds +-90 degrees. At this angle of rotation, the `up` vector is incorrect and
@@ -17,13 +28,16 @@ the camera flips. To prevent the camera from being rotated beyond +-90 degrees,
 the values were clamped between +-88 degrees.
 
 # B
-
+## Function
+The program now allows the user to change the scale, rotation and position of
+objects in the scene.
+## Implementation
 Using the scene object variables, the program constructs a matrix that performs
 the rotations, scale and translations required to get the object into the
 correct position. The position and rotation variables are set by the program
 during runtime.
 
-To do this, we apply these transformations in order
+To do this, several transformations are applied in order
 
 1. `RotateX(sceneObj.angles[0])`
 2. `RotateY(sceneObj.angles[1])`
@@ -35,11 +49,13 @@ The order here is quite important. While the rotations and scaling can occur in
 any order, the translation must occur last as the rotations and scaling must
 be performed at the origin for correct results.
 
-Clicking the left mouse and dragging vertically will rotate an object about the
-x-axis. Horizontal dragging will cause rotation parallel to the y-axis.
+- Left Mouse Button
+  - Horizontal: Rotate object parallel to the y-axis
+  - Vertical: Rotate object about the x-axis
 
-Clicking the middle mouse and dragging vertically increases/decrases the texture
-scale on the object. Horizontal dragging rotates the object about the z-axis.
+- Middle Mouse Button
+  - Horizontal: Rotate object about the z-axis
+  - Vertical: Increases/decrases the texture scale
 
 # C
 Using the left mouse button, you can move the mouse sources along the path of
