@@ -105,6 +105,7 @@ _Note - all of these values are clamped between 0.0 and 100.0 which I thought we
 reasonable limits for this program._
 
 # D
+![Close Up](D.PNG)
 
 ## Function
 
@@ -121,6 +122,8 @@ but I found the `Perspective()` function easier to understand in the code -
 especially for explaining part E.
 
 # E
+![FOV-Y](E-0.PNG)
+![FOV-X](E-1.PNG)
 
 ## Function
 
@@ -186,10 +189,10 @@ To solve this, I simply moved the color calculations over to the fragment
 shader. The vertex shader only exists to pass the normal, eye and light
 vectors to the fragment shader.
 
-This change makes moving light very smooth.
+This change makes moving light very smooth. As you can see in the picture.
 
 # H
-
+![Specular Highlight](H.PNG)
 ## Function
 
 Add a specular component to the lighting and make it tend towards white rather
@@ -204,12 +207,16 @@ float n = Shininess;
 vec3 reflection = reflect(light, normal);
 float cosTheta = clamp(dot(reflection, eye), 0.0, 1.0);
 float specularCoefficient = pow(cosTheta, n);
+if (dot(light, normal) < 0.0 ) {
+  specularCoefficient = 0.0;
+} 
 return specularCoefficient;
 ```
 
 Increasing values of `n` increase the amount of specular highlighting
 that occurs. This specular equation is designed to blow up then the
-eye is in the same direction to the reflected vector.
+eye is in the same direction to the reflected vector. And if the light source is
+not in front of the vertex, then specular is set to 0.
 
 To get the specular component tending towerds white.I simply created a constant
 colour vector which contained the elements `{0.1,0.1,0.1}` which will be scaled by the
@@ -236,6 +243,7 @@ The program correctly allows each light to have its own separate RGB
 values which affect the final render.
 
 # J
+![Spot Light](J.PNG)
 
 ## Function
 

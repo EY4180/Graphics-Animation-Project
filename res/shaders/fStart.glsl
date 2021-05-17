@@ -32,6 +32,10 @@ float getSpecular(in vec3 normal, in vec3 light, in vec3 eye)
     vec3 reflection = reflect(light, normal);
     float cosTheta = clamp(dot(reflection, eye), 0.0, 1.0);
     float specularCoefficient = pow(cosTheta, n);
+    
+    if (dot(light, normal) < 0.0 ) {
+	    specularCoefficient = 0.0;
+    } 
     return specularCoefficient;
 }
 
